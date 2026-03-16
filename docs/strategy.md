@@ -21,7 +21,17 @@ Historically, SOL-PERP funding rates have been predominantly positive (longs pay
 SOL-PERP on Drift has averaged:
 - **2024 bull market**: 20-60% annualized funding rate (shorts earning)
 - **2025 consolidation**: 8-25% annualized
-- **Bear periods**: Briefly negative, but historically short-lived
+- **Bear periods**: Negative funding (shorts pay longs) — strategy pauses during these periods
+
+### Adaptive Market Response
+
+The strategy actively monitors funding rate conditions. When funding turns negative (as it does during bearish sentiment), the vault:
+1. Closes all positions to stop paying funding
+2. Holds USDC idle (preserving capital)
+3. Re-enters when funding returns to positive territory
+4. This "sit out" mechanism prevents capital destruction during unfavorable periods
+
+**Current market (March 2026)**: SOL-PERP funding is slightly negative (bearish sentiment). The strategy would currently be idle, waiting for better conditions. Historically, negative funding periods are short-lived — bull sentiment returns and funding flips positive.
 
 ## Mechanics
 
