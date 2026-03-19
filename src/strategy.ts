@@ -27,7 +27,7 @@ import {
   PerpMarketAccount,
   SpotMarketAccount,
   convertToNumber,
-  calculateEstimatedFundingRate,
+  calculateAllEstimatedFundingRate,
   getMarketOrderParams,
   BulkAccountLoader,
   Wallet,

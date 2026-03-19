@@ -77,18 +77,19 @@ async function main() {
   // Try programmatic vault initialization
   console.log('\n--- INITIALIZING VAULT ---');
   try {
-    const { VaultClient } = await import('@drift-labs/vaults-sdk');
+    const vaultsSdk = await import('@drift-labs/vaults-sdk');
+    const { VaultClient } = vaultsSdk;
 
-    const vaultClient = new VaultClient({
+    // VaultClient requires driftClient + program; cast to any for SDK version compat
+    const vaultClient = new (VaultClient as any)({
       driftClient,
-      // program loaded automatically from vaults-sdk
     });
 
     const vaultKeypair = Keypair.generate();
     console.log(`Vault keypair: ${vaultKeypair.publicKey.toBase58()}`);
 
     const txSig = await vaultClient.initializeVault({
-      name: Buffer.from(VAULT_PARAMS.name).slice(0, 32),
+      name: Array.from(Buffer.from(VAULT_PARAMS.name).slice(0, 32)),
       spotMarketIndex: VAULT_PARAMS.spotMarketIndex,
       redeemPeriod: VAULT_PARAMS.redeemPeriod,
       maxTokens: VAULT_PARAMS.maxTokens,

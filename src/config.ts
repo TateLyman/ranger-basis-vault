@@ -7,8 +7,17 @@ export const MARKETS = {
   BTC_PERP: 1,
   ETH_PERP: 2,
   SOL_SPOT: 1,   // SOL spot market index
+  BTC_SPOT: 2,   // BTC spot market index (wrapped)
+  ETH_SPOT: 3,   // ETH spot market index (wrapped)
   USDC_SPOT: 0,  // USDC spot market index
 };
+
+// Perp markets available for basis trade rotation
+export const BASIS_MARKETS = [
+  { name: 'SOL', perpIndex: 0, spotIndex: 1 },
+  { name: 'BTC', perpIndex: 1, spotIndex: 2 },
+  { name: 'ETH', perpIndex: 2, spotIndex: 3 },
+];
 
 // Token mints
 export const MINTS = {
@@ -42,6 +51,23 @@ export const DEFAULT_CONFIG: StrategyConfig = {
   stopLossPct: 3,
   checkIntervalMs: 60_000, // 1 minute
   autoCompound: true,
+};
+
+// Adaptive strategy configuration
+export interface AdaptiveConfig extends StrategyConfig {
+  // Minimum funding rate advantage to trigger market rotation (%)
+  rotationThresholdPct: number;
+  // Whether to lend idle USDC when no basis trade is active
+  lendIdleUsdc: boolean;
+  // Minimum lending rate to deploy idle capital (APY %)
+  minLendingRateApy: number;
+}
+
+export const DEFAULT_ADAPTIVE_CONFIG: AdaptiveConfig = {
+  ...DEFAULT_CONFIG,
+  rotationThresholdPct: 3,
+  lendIdleUsdc: true,
+  minLendingRateApy: 1,
 };
 
 // Vault parameters for Drift vault initialization

@@ -1,11 +1,13 @@
 {
   "name": "ranger-basis-vault",
-  "version": "1.0.0",
-  "description": "Delta-neutral basis trade vault for Ranger Build-A-Bear Hackathon - earns funding rate yield on Drift Protocol",
+  "version": "2.0.0",
+  "description": "Adaptive multi-market delta-neutral funding rate vault on Drift Protocol — Ranger Build-A-Bear Hackathon",
   "main": "src/index.ts",
   "scripts": {
     "start": "npx ts-node src/index.ts",
-    "strategy": "npx ts-node src/strategy.ts",
+    "basic": "npx ts-node src/index.ts --basic",
+    "scan": "npx ts-node src/index.ts --scan",
+    "status": "npx ts-node src/index.ts --status",
     "monitor": "npx ts-node src/monitor.ts",
     "init-vault": "npx ts-node src/init-vault.ts",
     "backtest": "npx ts-node src/backtest.ts"
@@ -16,6 +18,7 @@
     "@drift-labs/vaults-sdk": "^0.2.0",
     "@solana/web3.js": "^1.95.0",
     "bn.js": "^5.2.1",
+    "bs58": "^5.0.0",
     "dotenv": "^16.4.0"
   },
   "devDependencies": {
