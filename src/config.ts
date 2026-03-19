@@ -1,23 +1,33 @@
 import { PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 
-// Drift market indices
+// Drift market indices (mainnet)
 export const MARKETS = {
   SOL_PERP: 0,
   BTC_PERP: 1,
   ETH_PERP: 2,
-  SOL_SPOT: 1,   // SOL spot market index
-  BTC_SPOT: 2,   // BTC spot market index (wrapped)
-  ETH_SPOT: 3,   // ETH spot market index (wrapped)
-  USDC_SPOT: 0,  // USDC spot market index
+  SOL_SPOT: 1,       // raw SOL
+  JITOSOL_SPOT: 6,   // JitoSOL (LST — earns staking + MEV yield)
+  WBTC_SPOT: 3,      // Wrapped BTC
+  WETH_SPOT: 4,       // Wrapped ETH
+  USDC_SPOT: 0,
 };
 
 // Perp markets available for basis trade rotation
+// SOL uses JitoSOL (index 6) instead of raw SOL (index 1) for the spot leg —
+// earns ~7-8% staking + MEV yield ON TOP of funding rate income
 export const BASIS_MARKETS = [
-  { name: 'SOL', perpIndex: 0, spotIndex: 1 },
-  { name: 'BTC', perpIndex: 1, spotIndex: 2 },
-  { name: 'ETH', perpIndex: 2, spotIndex: 3 },
+  { name: 'SOL', perpIndex: 0, spotIndex: 6, spotSymbol: 'jitoSOL' },
+  { name: 'BTC', perpIndex: 1, spotIndex: 3, spotSymbol: 'wBTC' },
+  { name: 'ETH', perpIndex: 2, spotIndex: 4, spotSymbol: 'wETH' },
 ];
+
+// Estimated staking APY from LSTs (stacked on top of basis trade yield)
+export const LST_STAKING_APY: Record<string, number> = {
+  jitoSOL: 7.5,  // ~7-8% staking + MEV rewards via Jito
+  wBTC: 0,
+  wETH: 0,
+};
 
 // Token mints
 export const MINTS = {

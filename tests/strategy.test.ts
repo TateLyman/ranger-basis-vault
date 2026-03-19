@@ -17,8 +17,9 @@ describe('Configuration', () => {
   it('defines correct spot market indices', () => {
     expect(MARKETS.USDC_SPOT).toBe(0);
     expect(MARKETS.SOL_SPOT).toBe(1);
-    expect(MARKETS.BTC_SPOT).toBe(2);
-    expect(MARKETS.ETH_SPOT).toBe(3);
+    expect(MARKETS.JITOSOL_SPOT).toBe(6);
+    expect(MARKETS.WBTC_SPOT).toBe(3);
+    expect(MARKETS.WETH_SPOT).toBe(4);
   });
 
   it('has 3 basis markets for rotation', () => {

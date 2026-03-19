@@ -61,13 +61,14 @@ function runComparison(monthlyRates: MonthlyRate[]) {
   const managementFeePct = 2;
   const performanceFeePct = 20;
   const lendingRateApy = 4; // Drift USDC lending rate during idle periods
+  const jitosolStakingApy = 7.5; // JitoSOL staking + MEV yield (added to SOL basis trades)
 
-  // === STRATEGY A: Single-market SOL-only (original) ===
+  // === STRATEGY A: Single-market SOL-only (original, raw SOL) ===
   let equityA = initialCapital;
   let totalYieldA = 0;
   let monthsActiveA = 0;
 
-  // === STRATEGY B: Adaptive multi-market rotation ===
+  // === STRATEGY B: Adaptive multi-market rotation + JitoSOL yield stacking ===
   let equityB = initialCapital;
   let totalYieldB = 0;
   let rotations = 0;
@@ -120,7 +121,10 @@ function runComparison(monthlyRates: MonthlyRate[]) {
       prevBestMarket = best.name;
       monthsActiveB++;
 
-      const bestMonthlyPct = best.rate / 12;
+      // Add JitoSOL staking yield when trading SOL (spot leg earns staking + MEV)
+      const stakingBonus = best.name === 'SOL' ? jitosolStakingApy : 0;
+      const effectiveRate = best.rate + stakingBonus;
+      const bestMonthlyPct = effectiveRate / 12;
       const yieldB = equityB * (bestMonthlyPct / 100);
       const mgmtFeeB = equityB * (managementFeePct / 100 / 12);
       const perfFeeB = yieldB > 0 ? yieldB * (performanceFeePct / 100) : 0;
@@ -164,7 +168,7 @@ function runComparison(monthlyRates: MonthlyRate[]) {
   console.log(`║    Annualized:        ${annualReturnA.toFixed(1)}%`.padEnd(63) + '║');
   console.log(`║    Months Active:     ${monthsActiveA}/${monthlyRates.length}`.padEnd(63) + '║');
   console.log('╠──────────────────────────────────────────────────────────────╣');
-  console.log('║  STRATEGY B: Adaptive Multi-Market (SOL/BTC/ETH)           ║');
+  console.log('║  STRATEGY B: Adaptive + JitoSOL Yield Stack (SOL/BTC/ETH)  ║');
   console.log(`║    Final Equity:      $${equityB.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`.padEnd(63) + '║');
   console.log(`║    Total Return:      ${returnB.toFixed(1)}%`.padEnd(63) + '║');
   console.log(`║    Annualized:        ${annualReturnB.toFixed(1)}%`.padEnd(63) + '║');
