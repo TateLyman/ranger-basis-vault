@@ -8,6 +8,8 @@
  *    idle USDC into Drift's lending pool to earn borrow interest.
  * 3. Smart rotation — only rotates markets when the advantage exceeds
  *    a configurable threshold (avoids churn from gas + slippage).
+ * 4. EMA-based trend analysis — uses exponential moving averages to detect
+ *    regime changes and time entries/exits more intelligently.
  *
  * This is the Basis Bear Crusher's primary strategy engine for the
  * Ranger Build-A-Bear Hackathon.
@@ -30,6 +32,7 @@ import {
   BASIS_MARKETS,
   MARKETS,
 } from './config';
+import { FundingAnalyzer } from './funding-analyzer';
 
 interface MarketFunding {
   name: string;
@@ -52,6 +55,7 @@ interface StrategyState {
 export class AdaptiveStrategy {
   private driftClient: DriftClient;
   private config: AdaptiveConfig;
+  private analyzer: FundingAnalyzer;
   private isRunning = false;
   private state: StrategyState = {
     mode: 'idle',
@@ -66,6 +70,7 @@ export class AdaptiveStrategy {
   constructor(driftClient: DriftClient, config: Partial<AdaptiveConfig> = {}) {
     this.driftClient = driftClient;
     this.config = { ...DEFAULT_ADAPTIVE_CONFIG, ...config };
+    this.analyzer = new FundingAnalyzer();
   }
 
   /**
@@ -95,6 +100,9 @@ export class AdaptiveStrategy {
           fundingRateApy: annualizedApy,
           price,
         });
+
+        // Feed data to trend analyzer
+        this.analyzer.record(market.name, annualizedApy);
       } catch (err: any) {
         console.log(`  Warning: Could not read ${market.name} market: ${err.message}`);
       }
@@ -396,9 +404,11 @@ export class AdaptiveStrategy {
 
     for (const m of markets) {
       const active = this.state.activeMarket?.perpIndex === m.perpIndex ? ' ←ACTIVE' : '';
-      const status = m.fundingRateApy > this.config.minFundingRateApy ? 'FAVORABLE' : 'SKIP';
+      const trend = this.analyzer.analyze(m.name);
+      const arrow = trend.trend === 'rising' ? '↑' : trend.trend === 'falling' ? '↓' : '→';
+      const sig = trend.signal.replace('_', ' ').toUpperCase().substring(0, 8);
       lines.push(
-        `║  ${m.name.padEnd(5)} $${m.price.toFixed(2).padEnd(10)} ${m.fundingRateApy.toFixed(1).padStart(6)}% APY  ${status.padEnd(9)}${active.padEnd(4)}║`
+        `║  ${m.name.padEnd(4)} $${m.price.toFixed(2).padEnd(10)} ${m.fundingRateApy.toFixed(1).padStart(6)}% ${arrow} ${sig.padEnd(9)}${active.padEnd(4)}║`
       );
     }
 
@@ -499,14 +509,20 @@ export class AdaptiveStrategy {
 
         } else if (this.state.mode === 'lending' || this.state.mode === 'idle') {
           // Periodically check if any market has become favorable
+          // Use trend analysis to prefer markets with rising funding
           const bestMarket = await this.findBestMarket();
           if (bestMarket) {
-            console.log(`  Market opportunity detected: ${bestMarket.name} at ${bestMarket.fundingRateApy.toFixed(1)}% APY`);
-            const positionSize = Math.min(
-              this.getEquity() * this.config.targetLeverage,
-              this.config.maxPositionUsdc
-            );
-            await this.openBasisTrade(bestMarket, positionSize);
+            const trend = this.analyzer.analyze(bestMarket.name);
+            if (trend.signal === 'exit' || trend.signal === 'exit_warning') {
+              console.log(`  ${bestMarket.name} has favorable rate but declining trend — waiting`);
+            } else {
+              console.log(`  Market opportunity: ${bestMarket.name} at ${bestMarket.fundingRateApy.toFixed(1)}% APY [${trend.trend} ${trend.signal}]`);
+              const positionSize = Math.min(
+                this.getEquity() * this.config.targetLeverage,
+                this.config.maxPositionUsdc
+              );
+              await this.openBasisTrade(bestMarket, positionSize);
+            }
           }
         }
 

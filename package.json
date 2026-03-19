@@ -10,7 +10,8 @@
     "status": "npx ts-node src/index.ts --status",
     "monitor": "npx ts-node src/monitor.ts",
     "init-vault": "npx ts-node src/init-vault.ts",
-    "backtest": "npx ts-node src/backtest.ts"
+    "backtest": "npx ts-node src/backtest.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
@@ -22,9 +23,10 @@
     "dotenv": "^16.4.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
-    "ts-node": "^10.9.0",
     "@types/bn.js": "^5.1.5",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.0"
   }
 }
